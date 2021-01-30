@@ -1,0 +1,39 @@
+- hosts: all
+  vars_files:
+          - Secretfile.yml
+  tasks:
+          - name: "S3_Bucket"
+            amazon.aws.s3_bucket:
+                    aws_access_key: "{{ access_key }}"
+                    aws_secret_key: "{{ secret_key }}"
+                    name: ansibleproject
+                    state: present
+                    versioning: yes
+
+          - name: Folder Creation
+            aws_s3:
+                aws_access_key: "{{ access_key }}"
+                aws_secret_key: "{{ secret_key }}"
+                bucket: ansibleproject
+                object: Folder_1/Folder_2/Folder_3
+                mode: create
+
+          - name: Listing
+            aws_s3:
+              aws_access_key: "{{ access_key }}"
+              aws_secret_key: "{{ secret_key }}"
+              bucket: ansibleproject
+              mode: list
+            register: bucket_content
+
+          - name: Bucket paths
+            debug:
+                 var: bucket_content.s3_keys
+
+          - name: Only top level folders
+            set_fact:
+                   deployed_packages: "{{ bucket_content.s3_keys | my_s3_filter }}"
+
+          - name: Top level folders
+            debug:
+                 var: deployed_packages
